@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="TOP_CENTER" prefHeight="650.0" prefWidth="1000.0" spacing="20.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.sysproduto.HelloController">
+<VBox alignment="TOP_CENTER" prefHeight="650.0" prefWidth="1000.0" spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.sysproduto.HelloController">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
@@ -60,14 +60,22 @@
       </GridPane>
       <HBox alignment="CENTER" prefHeight="45.0" prefWidth="200.0" spacing="10.0">
          <children>
-            <Button fx:id="btnNovo" mnemonicParsing="false" text="Novo" />
+            <Button fx:id="btnNovo" mnemonicParsing="false" onAction="#onClickNovo" text="Novo" />
             <Button fx:id="btnCadastrar" mnemonicParsing="false" onAction="#onClickCadastrar" text="Cadastrar" />
-            <Button fx:id="btnAtualizar" mnemonicParsing="false" text="Atualizar" />
-            <Button fx:id="btnExcluir" mnemonicParsing="false" text="Excluir" />
-            <Button fx:id="btnSalvar" mnemonicParsing="false" text="Salvar" />
+            <Button fx:id="btnAtualizar" mnemonicParsing="false" onAction="#onClickAtualizar" text="Atualizar" />
+            <Button fx:id="btnExcluir" mnemonicParsing="false" onAction="#onClickExcluir" text="Excluir" />
+            <Button fx:id="btnSalvar" mnemonicParsing="false" onAction="#onClickSalvar" text="Salvar" />
          </children>
       </HBox>
-      <TableView fx:id="tblProdutos" prefHeight="200.0" prefWidth="200.0">
+      <HBox alignment="CENTER" spacing="10.0">
+         <children>
+            <TextField fx:id="txtConsulta" promptText="Consultar por código" onAction="#onClickConsultar" />
+            <Button fx:id="btnConsultar" text="Consultar" onAction="#onClickConsultar" />
+            <Button fx:id="btnListarTodos" text="Listar todos" onAction="#onClickListarTodos" />
+            <Button fx:id="btnRelatorios" text="Relatórios" onAction="#onClickRelatorios" />
+         </children>
+      </HBox>
+      <TableView fx:id="tblProdutos" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
         <columns>
           <TableColumn fx:id="colCodigo" prefWidth="75.0" text="Código" />
           <TableColumn fx:id="colNome" prefWidth="75.0" text="Nome" />
@@ -80,5 +88,6 @@
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>
       </TableView>
+      <Label fx:id="lblStatus" text="Selecione um produto para editar ou clique em Novo." wrapText="true" />
    </children>
 </VBox>

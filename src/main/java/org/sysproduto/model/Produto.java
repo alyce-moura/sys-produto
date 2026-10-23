@@ -158,7 +158,7 @@ public class Produto {
         }
 
         // Validação da categoria
-        if (categoria == null ) {
+        if (categoria == null || categoria.getNome() == null || categoria.getNome().isBlank()) {
             throw new IllegalArgumentException(
                     "O produto deve possuir uma categoria."
             );

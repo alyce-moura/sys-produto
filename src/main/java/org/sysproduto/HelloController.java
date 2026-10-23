@@ -1,5 +1,6 @@
 package org.sysproduto;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -13,6 +14,10 @@ import javafx.util.StringConverter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.sysproduto.model.CadastroProduto;
 
 import javafx.collections.FXCollections;
@@ -20,7 +25,11 @@ import javafx.collections.FXCollections;
 public class HelloController {
 
     // gerenciamento de produtos cadastrados
-    private CadastroProduto cadastro = new  CadastroProduto();
+    private final CadastroProduto cadastro = new CadastroProduto();
+    private String codigoSelecionado;
+
+    @FXML private TextField txtConsulta;
+    @FXML private Label lblStatus;
 
     //  COMPONENETES DO FORMULÁRIO
     @FXML
@@ -141,66 +150,208 @@ public class HelloController {
 
         // carrega os produtos cadastrados na tabela
         atualizarTabela();
+        tblProdutos.getSelectionModel().selectedItemProperty().addListener(
+                (observavel, anterior, atual) -> {
+                    if (atual != null) {
+                        preencherFormulario(atual);
+                    } else {
+                        codigoSelecionado = null;
+                        txtCodigo.setEditable(true);
+                    }
+                });
+        if (cadastro.getErroCarregamento() != null) {
+            btnCadastrar.setDisable(true);
+            btnAtualizar.setDisable(true);
+            btnExcluir.setDisable(true);
+            btnSalvar.setDisable(true);
+            lblStatus.setText("CSV não carregado. Corrija o arquivo e reinicie o sistema.");
+            Platform.runLater(() -> mostrarErro("Erro ao carregar produtos: " + cadastro.getErroCarregamento()));
+        }
     }
 
-    // METODOS DOS BOTOES
-    // ação do botao cadastrar
     @FXML
     private void onClickCadastrar() {
-        // recupera o codigo cadastrado
-        String codigo = txtCodigo.getText().trim();
-
-        // recupera o nome digitado
-        String nome = txtNome.getText().trim();
-
-        // recupera a descrição do produto
-        String descricao = txtDescricao.getText().trim();
-
-        // reucpera as datas selecionadas
-        LocalDate dataFabricacao = dpDataFabricacao.getValue();
-        LocalDate dataValidade = dpDataValidade.getValue();
-
-        // recupera os preços digitados
-        BigDecimal precoCompra = new BigDecimal(
-                txtPrecoCompra.getText().trim().replace(",", "."));
-        BigDecimal precoVenda = new BigDecimal(
-                txtPrecoVenda.getText().trim().replace(",", "."));
-
-        // recupera a quantidade em estoque
-        int quantidadeEstoque = Integer.parseInt(
-                txtQuantidadeEstoque.getText().trim());
-
-        // recupera a categoria selecionada
-        Categoria categoria = cbCategoria.getValue();
+        executarOperacao(() -> {
+            cadastro.cadastrarProduto(lerFormulario());
+            atualizarTabela();
+            onClickNovo();
+            lblStatus.setText("Produto cadastrado e salvo no CSV.");
+        });
     }
 
+    @FXML
+    private void onClickNovo() {
+        tblProdutos.getSelectionModel().clearSelection();
+        codigoSelecionado = null;
+        txtCodigo.setEditable(true);
+        txtCodigo.clear();
+        txtNome.clear();
+        txtDescricao.clear();
+        dpDataFabricacao.setValue(null);
+        dpDataFabricacao.getEditor().clear();
+        dpDataValidade.setValue(null);
+        dpDataValidade.getEditor().clear();
+        txtPrecoCompra.clear();
+        txtPrecoVenda.clear();
+        txtQuantidadeEstoque.clear();
+        cbCategoria.getSelectionModel().clearSelection();
+        cbCategoria.setValue(null);
+        lblStatus.setText("Informe os dados de um novo produto.");
+        txtCodigo.requestFocus();
+    }
 
+    @FXML
+    private void onClickAtualizar() {
+        executarOperacao(() -> {
+            exigirSelecao();
+            cadastro.atualizarProduto(codigoSelecionado, lerFormulario());
+            atualizarTabela();
+            onClickNovo();
+            lblStatus.setText("Produto atualizado e salvo no CSV.");
+        });
+    }
 
+    @FXML
+    private void onClickExcluir() {
+        executarOperacao(() -> {
+            exigirSelecao();
+            Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Excluir o produto " + codigoSelecionado + "?", ButtonType.YES, ButtonType.NO);
+            confirmacao.setTitle("Excluir produto");
+            confirmacao.setHeaderText("Confirmação de exclusão");
+            confirmacao.initOwner(tblProdutos.getScene().getWindow());
+            if (confirmacao.showAndWait().orElse(ButtonType.NO) != ButtonType.YES) {
+                return;
+            }
+            if (!cadastro.excluirProduto(codigoSelecionado)) {
+                throw new IllegalArgumentException("Produto não encontrado.");
+            }
+            atualizarTabela();
+            onClickNovo();
+            lblStatus.setText("Produto excluído. CSV atualizado.");
+        });
+    }
 
+    @FXML
+    private void onClickSalvar() {
+        executarOperacao(() -> {
+            cadastro.salvar();
+            lblStatus.setText("Lista salva no CSV. Para gravar edições do formulário, use Atualizar.");
+        });
+    }
 
+    @FXML
+    private void onClickConsultar() {
+        executarOperacao(() -> {
+            String codigo = txtConsulta.getText().trim();
+            if (codigo.isEmpty()) {
+                throw new IllegalArgumentException("Informe o código do produto para consultar.");
+            }
+            Produto encontrado = cadastro.consultarProduto(codigo);
+            if (encontrado == null) {
+                throw new IllegalArgumentException("Nenhum produto encontrado com esse código.");
+            }
+            tblProdutos.setItems(FXCollections.observableArrayList(encontrado));
+            tblProdutos.getSelectionModel().select(encontrado);
+            lblStatus.setText("Produto encontrado. Selecione Listar todos para retornar à lista completa.");
+        });
+    }
 
+    @FXML
+    private void onClickListarTodos() {
+        atualizarTabela();
+        onClickNovo();
+        txtConsulta.clear();
+        lblStatus.setText(cadastro.listarProdutos().size() + " produto(s) cadastrado(s).");
+    }
 
+    @FXML
+    private void onClickRelatorios() {
+        Dialog<Void> dialogo = new Dialog<>();
+        dialogo.setTitle("Relatórios de produtos");
+        dialogo.setHeaderText("Relatórios gerados com a API Stream — "
+                + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        dialogo.initOwner(tblProdutos.getScene().getWindow());
+        TextArea texto = new TextArea(
+                "PRÓXIMOS AO VENCIMENTO (de hoje até 60 dias, inclusive)\n"
+                + formatarRelatorio(cadastro.produtosProximosVencimento())
+                + "\n\nESTOQUE BAIXO (menos de 10 unidades)\n"
+                + formatarRelatorio(cadastro.produtosEstoqueBaixo()));
+        texto.setEditable(false);
+        texto.setWrapText(true);
+        texto.setPrefSize(700, 400);
+        dialogo.getDialogPane().setContent(texto);
+        dialogo.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialogo.show();
+    }
 
+    private String formatarRelatorio(List<Produto> produtos) {
+        if (produtos.isEmpty()) {
+            return "Nenhum produto encontrado.";
+        }
+        return produtos.stream()
+                .map(p -> p.getCodigo() + " | " + p.getNome() + " | Categoria: "
+                        + p.getCategoria().getNome() + " | Validade: "
+                        + p.getDataValidade().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        + " | Estoque: " + p.getQuantidadeEstoque())
+                .collect(Collectors.joining("\n"));
+    }
 
-    // METODOS AUXILIARES
-    // Atualiza a tabela com os produtos cadastrados
+    private Produto lerFormulario() {
+        // commitValue considera também datas digitadas, sem depender de sair do campo.
+        dpDataFabricacao.commitValue();
+        dpDataValidade.commitValue();
+        return new Produto(txtCodigo.getText().trim(), txtNome.getText().trim(),
+                txtDescricao.getText().trim(), dpDataFabricacao.getValue(), dpDataValidade.getValue(),
+                new BigDecimal(txtPrecoCompra.getText().trim().replace(",", ".")),
+                new BigDecimal(txtPrecoVenda.getText().trim().replace(",", ".")),
+                Integer.parseInt(txtQuantidadeEstoque.getText().trim()), cbCategoria.getValue());
+    }
+
+    private void preencherFormulario(Produto produto) {
+        codigoSelecionado = produto.getCodigo();
+        txtCodigo.setText(produto.getCodigo());
+        txtCodigo.setEditable(false);
+        txtNome.setText(produto.getNome());
+        txtDescricao.setText(produto.getDescricao());
+        dpDataFabricacao.setValue(produto.getDataFabricacao());
+        dpDataValidade.setValue(produto.getDataValidade());
+        txtPrecoCompra.setText(produto.getPrecoCompra().toPlainString());
+        txtPrecoVenda.setText(produto.getPrecoVenda().toPlainString());
+        txtQuantidadeEstoque.setText(String.valueOf(produto.getQuantidadeEstoque()));
+        cbCategoria.setValue(produto.getCategoria());
+        lblStatus.setText("Produto selecionado. Edite os dados e clique em Atualizar.");
+    }
+
+    private void exigirSelecao() {
+        if (codigoSelecionado == null) {
+            throw new IllegalArgumentException("Selecione um produto na tabela ou consulte seu código primeiro.");
+        }
+    }
+
+    private void executarOperacao(Runnable operacao) {
+        try {
+            operacao.run();
+        } catch (DateTimeParseException e) {
+            mostrarErro("Data inválida. Informe uma data no formato exibido pelo calendário.");
+        } catch (NumberFormatException e) {
+            mostrarErro("Informe preços numéricos (ex.: 25,90) e estoque como número inteiro.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            mostrarErro(e.getMessage());
+        }
+    }
+
+    private void mostrarErro(String mensagem) {
+        lblStatus.setText(mensagem);
+        Alert alerta = new Alert(Alert.AlertType.ERROR);
+        alerta.setTitle("Não foi possível concluir a operação");
+        alerta.setHeaderText("Verifique os dados informados");
+        alerta.setContentText(mensagem);
+        alerta.initOwner(tblProdutos.getScene().getWindow());
+        alerta.show();
+    }
+
     private void atualizarTabela() {
-        tblProdutos.setItems(
-           FXCollections.observableArrayList(cadastro.listarProdutos())
-        );
+        tblProdutos.setItems(FXCollections.observableArrayList(cadastro.listarProdutos()));
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
