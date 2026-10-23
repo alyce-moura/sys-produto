@@ -1,38 +1,35 @@
-# Relatório de implementação — sys-produto
+# Relatório do Projeto — sys-produto
 
-## Funcionalidades e requisitos da atividade
+## Introdução
 
-| Exigência do PDF | Implementação |
-| --- | --- |
-| Interface JavaFX com formulário, tabela e eventos | FXML original preservado, `HelloController` finalizado e seleção da tabela preenchendo o formulário |
-| Cadastro com todos os dados | Botão Cadastrar, categorias no ComboBox e validação central em `Produto.validar()` |
-| Exclusão de produto | Seleção na tabela ou pela consulta, confirmação e persistência automática |
-| Consulta específica por código | Campo de consulta, botão Consultar e tecla Enter; busca sem diferenciar maiúsculas/minúsculas |
-| Listagem de todos os produtos | Carregamento inicial e botão Listar todos |
-| Classes Categoria e Produto com atributos exigidos | Classes existentes preservadas, inclusive composição e tipos `LocalDate` e `BigDecimal` |
-| CSV separado por ponto-e-vírgula | 12 campos em UTF-8, compatível com o CSV original e com escape de caracteres especiais |
-| Carregamento ao iniciar e gravação após operações | `CadastroProduto` carrega no construtor; cadastro, atualização e exclusão salvam automaticamente |
-| Pelo menos dois relatórios com Streams | Próximos ao vencimento em até 60 dias e estoque abaixo de 10 unidades, exibidos pela interface |
-| Validações e tratamento de exceções | Regras de código, nome, datas, preços, estoque e categoria; mensagens na interface e proteção contra perda do CSV |
-| README e breve relatório | `README.md` e este documento |
-| Código no GitHub e projeto ZIP | Branch própria para revisão; ZIP gerável com `git archive` conforme README |
+O projeto **sys-produto** consiste em um sistema de cadastro de produtos de uma loja ou supermercado, desenvolvido em Java com interface gráfica JavaFX. Sua finalidade é permitir o registro, a consulta e a manutenção de informações sobre os produtos, além de apresentar relatórios de validade e estoque. O desenvolvimento reúne conceitos de programação orientada a objetos, manipulação de arquivos e processamento de dados com a Stream API.
 
-Além do mínimo do PDF, os botões já presentes **Novo**, **Atualizar** e **Salvar** foram conectados às respectivas operações para completar o layout existente. Não foram criadas novas classes de produção.
+## Funcionalidades Implementadas
 
-## Decisões de implementação
+O sistema permite cadastrar produtos com código, nome, descrição, datas de fabricação e validade, preços de compra e venda, quantidade em estoque e categoria. Os registros são apresentados em uma tabela, cuja seleção preenche o formulário para edição. É possível atualizar os dados, excluir um produto mediante confirmação e consultar um registro pelo código. O botão **Novo** limpa o formulário, enquanto **Listar todos** restaura a exibição completa dos produtos.
 
-- O `HelloController` continua como único controlador. A disposição original de formulário, botões e tabela foi mantida; acrescentou-se uma linha de consulta/relatórios e uma mensagem de estado. O namespace FXML foi alinhado ao JavaFX 21 usado pelo projeto.
-- A seleção de uma linha carrega todos os campos. O código fica imutável durante a edição; para cadastrar outro produto, usa-se Novo. Atualizar grava as edições do formulário. Salvar grava novamente a lista, sem cadastrar implicitamente um formulário incompleto.
-- `CadastroProduto` centraliza as operações e os dois filtros de relatório. Produtos com validade entre hoje e hoje + 60 dias são incluídos; os já vencidos ficam fora desse relatório. Estoque baixo corresponde estritamente a quantidade menor que 10.
-- `ArquivoUtil` mantém o arquivo local, sem banco ou biblioteca adicional. O parser trata campos com `;`, aspas e quebras de linha, e identifica registros inválidos, datas/números incorretos e códigos duplicados.
-- A gravação é feita em arquivo temporário e substitui o destino. Se a escrita falhar, cadastro, atualização e exclusão revertem a alteração em memória. Uma falha de carregamento bloqueia gravações para impedir a substituição acidental de dados não carregados.
-- A abertura do pacote do modelo para `javafx.base` permite que a tabela modular use os getters via `PropertyValueFactory`.
-- O plugin Surefire foi atualizado para executar de fato o JUnit 5 já declarado no projeto. Os testes usam diretórios temporários e não alteram o CSV do usuário.
+Os dados são carregados de um arquivo CSV ao iniciar o programa. Cadastro, atualização e exclusão são salvos automaticamente; o botão **Salvar** permite gravar novamente a lista cadastrada.
 
-## Validação e verificação manual
+As validações verificam a unicidade e o formato do código, o tamanho mínimo do nome, as datas, os preços, o estoque e a seleção da categoria. O sistema apresenta mensagens para entradas inválidas e problemas de leitura ou gravação.
 
-Na execução final na nuvem, `clean verify` terminou com **BUILD SUCCESS**: **11 testes executados, 0 falhas, 0 erros e 0 ignorados** (8 de modelo/CSV e 3 de interface). Também foi verificada a aplicação no modo modular, com cadastro pela interface e leitura dos getters da tabela. O arquivo `produtos.csv` versionado foi preservado.
+Foram implementados dois relatórios: produtos com validade entre a data atual e os próximos 60 dias, incluindo os limites desse período e excluindo os já vencidos; e produtos com estoque inferior a 10 unidades.
 
-Os testes automatizados cobrem CRUD e recarga, unicidade de código, validações dos campos, caracteres especiais no CSV, arquivos corrompidos, reversão em falhas de escrita e limites dos dois relatórios. Os testes JavaFX carregam o FXML real e disparam cadastro, consulta, atualização, exclusão com cancelamento/confirmação, Novo, Salvar, listagem e abertura dos relatórios.
+## Decisões de Desenvolvimento
 
-A execução dos testes gráficos depende de `DISPLAY`; sem ele, são reportados como ignorados. Antes da apresentação, confirme no computador de entrega a aparência do formulário, redimensionamento, acentos, seleção de datas e navegação por teclado. Confira também a abertura pelo IntelliJ com JDK 21 e o arquivo CSV no diretório correto. Esses itens dependem da máquina local e não podem ser garantidos apenas pela execução na nuvem.
+O JavaFX foi utilizado para construir a interface com formulário, seleção de categorias, botões e tabela. O layout foi mantido em FXML, compatível com o Scene Builder, e o `HelloController` permaneceu responsável pelos eventos da interface. O formulário foi organizado em duas colunas, com os controles de ação e consulta em uma única linha.
+
+A programação orientada a objetos está representada pelas classes `Produto` e `Categoria`, sendo cada produto associado a uma categoria por composição. A classe `CadastroProduto` concentra as operações de gerenciamento, enquanto `ArquivoUtil` realiza a leitura e a gravação dos dados. Essa divisão separa as responsabilidades da interface, das regras de negócio e do armazenamento.
+
+O CSV, com campos separados por ponto-e-vírgula, foi adotado para a persistência local, sem necessidade de banco de dados. A gravação trata caracteres especiais e procura preservar os registros diante de falhas. Caso o arquivo não possa ser carregado corretamente, novas gravações são bloqueadas para evitar sua substituição por dados incompletos.
+
+A Stream API é utilizada para filtrar os produtos dos dois relatórios e organizar as informações apresentadas ao usuário.
+
+## Testes Realizados
+
+A compilação e o empacotamento do projeto foram concluídos com sucesso. Foram executados **11 testes automatizados**, sem falhas, erros ou testes ignorados: oito relacionados às regras de negócio e à persistência, e três à interface gráfica.
+
+As verificações abrangeram cadastro, consulta, atualização, exclusão, validações, gravação e recarga do CSV, tratamento de arquivos inválidos e limites dos relatórios. Também foram testados os eventos dos botões e a apresentação dos dados na tabela. A interface foi conferida em uma tela virtual; a aparência e a interação no computador da apresentação ainda devem ser verificadas manualmente.
+
+## Conclusão
+
+O projeto implementa as operações de gerenciamento de produtos, a persistência em CSV e os dois relatórios previstos para a atividade. A organização das classes e da interface permite relacionar os recursos desenvolvidos aos conceitos de orientação a objetos, tratamento de eventos e processamento de coleções. Os testes realizados verificaram as funcionalidades implementadas no ambiente de desenvolvimento utilizado.
