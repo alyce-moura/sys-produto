@@ -19,32 +19,32 @@
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
    <children>
-      <Label text="Sistema de Cadastro de Produtos" />
+      <Label text="Sistema de Cadastro de Produtos" style="-fx-font-size: 16px;" />
       <GridPane hgap="12.0" maxWidth="Infinity" vgap="8.0">
          <columnConstraints>
-            <ColumnConstraints halignment="RIGHT" minWidth="170.0" prefWidth="170.0" />
+            <ColumnConstraints halignment="LEFT" minWidth="170.0" prefWidth="170.0" maxWidth="170.0" />
             <ColumnConstraints hgrow="ALWAYS" minWidth="160.0" prefWidth="280.0" />
-            <ColumnConstraints halignment="RIGHT" minWidth="140.0" prefWidth="140.0" />
+            <ColumnConstraints halignment="LEFT" minWidth="140.0" prefWidth="140.0" maxWidth="140.0" />
             <ColumnConstraints hgrow="ALWAYS" minWidth="160.0" prefWidth="280.0" />
          </columnConstraints>
          <children>
-            <Label text="Código:" />
+            <Label alignment="CENTER_LEFT" minWidth="170.0" prefWidth="170.0" maxWidth="170.0" text="Código:" />
             <TextField fx:id="txtCodigo" promptText="Digite o Código:" GridPane.columnIndex="1" />
-            <Label text="Nome:" GridPane.rowIndex="1" />
+            <Label alignment="CENTER_LEFT" minWidth="170.0" prefWidth="170.0" maxWidth="170.0" text="Nome:" GridPane.rowIndex="1" />
             <TextField fx:id="txtNome" promptText="Digite o nome do produto:" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Label text="Descrição:" GridPane.rowIndex="2" />
+            <Label alignment="CENTER_LEFT" minWidth="170.0" prefWidth="170.0" maxWidth="170.0" text="Descrição:" GridPane.rowIndex="2" />
             <TextArea fx:id="txtDescricao" prefHeight="60.0" prefRowCount="2" wrapText="true" promptText="Descreva o produto:" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Label text="Preço de Compra:" GridPane.rowIndex="3" />
+            <Label alignment="CENTER_LEFT" minWidth="170.0" prefWidth="170.0" maxWidth="170.0" text="Preço de Compra:" GridPane.rowIndex="3" />
             <TextField fx:id="txtPrecoCompra" promptText="Ex: 25,90" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <Label text="Preço de Venda:" GridPane.rowIndex="4" />
+            <Label alignment="CENTER_LEFT" minWidth="170.0" prefWidth="170.0" maxWidth="170.0" text="Preço de Venda:" GridPane.rowIndex="4" />
             <TextField fx:id="txtPrecoVenda" promptText="Ex: 39,90" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-            <Label text="Quantidade em Estoque:" GridPane.rowIndex="5" />
+            <Label alignment="CENTER_LEFT" minWidth="170.0" prefWidth="170.0" maxWidth="170.0" text="Quantidade em Estoque:" GridPane.rowIndex="5" />
             <TextField fx:id="txtQuantidadeEstoque" promptText="Ex: 10" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-            <Label text="Data de Fabricação:" GridPane.columnIndex="2" />
+            <Label alignment="CENTER_LEFT" minWidth="140.0" prefWidth="140.0" maxWidth="140.0" text="Data de Fabricação:" GridPane.columnIndex="2" />
             <DatePicker fx:id="dpDataFabricacao" maxWidth="Infinity" promptText="Selecione a data:" GridPane.columnIndex="3" />
-            <Label text="Data de Validade:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <Label alignment="CENTER_LEFT" minWidth="140.0" prefWidth="140.0" maxWidth="140.0" text="Data de Validade:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
             <DatePicker fx:id="dpDataValidade" maxWidth="Infinity" promptText="Selecione a data:" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-            <Label text="Categoria:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+            <Label alignment="CENTER_LEFT" minWidth="140.0" prefWidth="140.0" maxWidth="140.0" text="Categoria:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
             <ComboBox fx:id="cbCategoria" maxWidth="Infinity" promptText="Selecione uma categoria:" GridPane.columnIndex="3" GridPane.rowIndex="2" />
          </children>
       </GridPane>
